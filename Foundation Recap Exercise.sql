@@ -87,8 +87,67 @@ SELECT
 	,h.[Type]
 FROM
 	PatientStay ps
---INNER JOIN DimHospitalBad h
---LEFT JOIN DimHospitalBad h
---RIGHT JOIN DimHospitalBad h
-FULL OUTER JOIN DimHospitalBad h
-ON ps.Hospital = h.Hospital
+	--INNER JOIN DimHospitalBad h
+	--LEFT JOIN DimHospitalBad h
+	--RIGHT JOIN DimHospitalBad h
+	FULL OUTER JOIN DimHospitalBad h
+	ON ps.Hospital = h.Hospital
+
+SELECT
+	ps.PatientId
+	,ps.AdmittedDate
+	,h.Hospital
+	,ps.Hospital
+	,h.[Type]
+FROM
+	PatientStay ps
+	INNER JOIN DimHospital h
+	ON ps.Hospital = h.Hospital
+WHERE ps.Ethnicity IS NULL
+
+
+SELECT
+	ps.PatientId
+    ,ps.AdmittedDate
+    ,ps.DischargeDate
+    ,ps.Ward
+    ,ps.Hospital
+    ,DATEDIFF(DAY, ps.AdmittedDate, ps.DischargeDate) + 1 AS LengthOfStay
+	,CASE WHEN ps.Tariff >=7 THEN 'High Cost' 
+	WHEN ps.Tariff >=4 THEN 'Medium Cost'
+	ELSE 'Low Cost' END AS CostType
+FROM
+	PatientStay ps
+
+SELECT
+	CASE WHEN ps.Tariff >=7 THEN 'High Cost' 
+	WHEN ps.Tariff >=4 THEN 'Medium Cost'
+	ELSE 'Low Cost' END AS CostType
+	,COUNT(*) AS 'Patients'
+	,SUM(ps.Tariff) AS 'Total cost'
+FROM
+	PatientStay ps
+WHERE CASE WHEN ps.Tariff >=7 THEN 'High Cost' 
+	WHEN ps.Tariff >=4 THEN 'Medium Cost'
+	ELSE 'Low Cost' END IN ('High cost' , 'Low cost' )
+GROUP BY CASE WHEN ps.Tariff >=7 THEN 'High Cost' 
+	WHEN ps.Tariff >=4 THEN 'Medium Cost'
+	ELSE 'Low Cost' END
+;
+/****CTE****/
+WITH cte AS
+(
+	SELECT
+	CASE WHEN ps.Tariff >=7 THEN 'High Cost' 
+	WHEN ps.Tariff >=3 THEN 'Medium Cost'
+	ELSE 'Low Cost' END AS CostType
+	,ps.Tariff
+FROM
+	PatientStay ps
+)
+SELECT cte.CostType
+,count(*) as NoOfPatients
+,SUM(cte.Tariff) AS 'Total cost'
+FROM cte
+WHERE cte.CostType IN ('High cost' , 'Low cost')
+GROUP BY cte.CostType
