@@ -8,7 +8,8 @@ This lists 44 patients admitted to London hospitals over 5 days between Feb 26th
 SELECT
 	*
 FROM
-	PatientStay ps ;
+	PatientStay ps
+;
 
 /*
 1. List the patients -
@@ -27,21 +28,36 @@ SELECT
 	*
 FROM
 	PatientStay ps
-Where ps.Hospital not in ('Oxleas','PRUH')
-AND ps.AdmittedDate BETWEEN '2024-02-01' AND '2024-02-29'
-AND ps.Ward like '%Surgery%';
+WHERE ps.Hospital NOT IN ('Oxleas','PRUH')
+	AND ps.AdmittedDate BETWEEN '2024-02-01' AND '2024-02-29'
+	AND ps.Ward LIKE '%Surgery%';
 --ps.AdmittedDate >= '2024-02-01' AND ps.AdmittedDate <= '2024-02-29';
 
+/***** test date functions******/
 SELECT
-	ps.PatientId, ps.AdmittedDate, ps.DischargeDate, ps.Hospital, ps.Ward
-	, DATEDIFF(day,ps.AdmittedDate,ps.DischargeDate) + 1 as LengthOfStay
+	MONTH('2024-02-13') AS MyMonth
+SELECT
+	DATEPART(MM, '2024-02-13')
+SELECT
+	DATENAME(MM, '2024-02-13')
+
+SELECT
+	LEFT(DATENAME(MM, '2024-02-13'), 3)
+
+SELECT
+	ps.PatientId
+	,ps.AdmittedDate
+	,ps.DischargeDate
+	,ps.Hospital
+	,ps.Ward
+	,DATEDIFF(day,ps.AdmittedDate,ps.DischargeDate) + 1 AS LengthOfStay
 FROM
 	PatientStay ps
-Where ps.Hospital in ('Oxleas','PRUH')
+WHERE ps.Hospital IN ('Oxleas','PRUH')
 	AND MONTH(ps.AdmittedDate) = 2
 	--AND ps.AdmittedDate BETWEEN '2024-02-01' AND '2024-02-29'
-	AND ps.Ward like '%Surgery%'
-ORDER BY ps.AdmittedDate desc, ps.PatientId desc
+	AND ps.Ward LIKE '%Surgery%'
+ORDER BY ps.AdmittedDate DESC, ps.PatientId DESC
 /*
 5. How many patients has each hospital admitted? 
 6. How much is the total tarriff for each hospital?
@@ -53,9 +69,26 @@ ORDER BY ps.AdmittedDate desc, ps.PatientId desc
 -- Write the SQL statement here
 
 SELECT
-	ps.Hospital, count(ps.PatientId) as NumberOfPatients, count(ps.Tariff) as Totaltarriff
+	ps.Hospital
+	,count(ps.PatientId) AS NumberOfPatients
+	,SUM(ps.Tariff) AS Totaltariff
 FROM
 	PatientStay ps
 GROUP BY ps.Hospital
 HAVING count(ps.PatientId) > 10
-ORDER BY NumberOfPatients desc
+ORDER BY NumberOfPatients DESC;
+
+/***JOINS***/
+SELECT
+	ps.PatientId
+	,ps.AdmittedDate
+	,h.Hospital
+	,ps.Hospital
+	,h.[Type]
+FROM
+	PatientStay ps
+--INNER JOIN DimHospitalBad h
+--LEFT JOIN DimHospitalBad h
+--RIGHT JOIN DimHospitalBad h
+FULL OUTER JOIN DimHospitalBad h
+ON ps.Hospital = h.Hospital
